@@ -47,11 +47,8 @@ class ParseCategory implements ShouldQueue
     public function handle()
     {
         $document = new Document();
-        try {
-            $images = BonnyParser::parseCategory($this->category, $document);
-        } catch (Throwable $e) {
-            Log::error('Parsing error ' . $this->fullName);
-        }
+
+        $images = BonnyParser::parseCategory($this->category, $document);
 
         $writer = SimpleExcelWriter::create($this->fullName, 'xlsx');
         foreach ($images as $image) {

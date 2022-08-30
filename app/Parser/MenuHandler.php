@@ -3,6 +3,7 @@
 namespace App\Parser;
 
 use App\Jobs\ParseCategory;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -11,13 +12,13 @@ class MenuHandler
     private const BASE_PATH = '/public/bonnycards';
     private string $currentPath = self::BASE_PATH;
 
-    public function scheduleJobs(MainMenu $menu, BonnyParser $parser)
+    public function scheduleJobs(MainMenu $menu)
     {
         $this->clearBaseDirectory();
         $this->makeDirectories($menu);
     }
 
-    private function clearBaseDirectory()
+    private function clearBaseDirectory(): void
     {
         if (Storage::exists(self::BASE_PATH)) {
             Storage::deleteDirectory(self::BASE_PATH);

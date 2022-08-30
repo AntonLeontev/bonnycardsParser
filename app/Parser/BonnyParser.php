@@ -60,15 +60,8 @@ class BonnyParser
         return $menu;
     }
 
-    public function parseCategory(Category $category, Document $document, $result = [])
+    public function parseCategory(Category $category, Document $document)
     {
-//        if ($category->hasSubcategories()) {
-//            foreach ($category->getSubcategories() as $subcategory) {
-//                $subcategoryResult = $this->parseCategory($subcategory, $document);
-//                $result[$category->getName()][] =  [$subcategory->getName() => $subcategoryResult];
-//            }
-//            return $result;
-//        }
         $html = $this->getHtml($category->getLink());
 
         $document->loadHtml($html);
@@ -76,8 +69,7 @@ class BonnyParser
         $pagination = $document->first('.str');
 
         if (! $pagination) {
-            $result = $this->parseImages($category->getLink());
-            return $result;
+            return $this->parseImages($category->getLink());
         }
 
         $lastPageNumber = $this->parseLastPageNumber($pagination);
@@ -87,9 +79,7 @@ class BonnyParser
         foreach ($links as $link) {
             $allPagesResult[] = $this->parseImages($link);
         }
-        $result = array_merge(...$allPagesResult);
-
-        return $result;
+        return array_merge(...$allPagesResult);
     }
 
     private function getHtml(string $url): string
@@ -130,15 +120,24 @@ class BonnyParser
         foreach ($images as $image) {
             $href = $image->getAttribute('href');
             $text = $image->text();
-            $imageLink = $this->convertToImageLink($href);
+            $imageLink = $this->parseImageLink($href);
             $result[] = compact('imageLink', 'text');
         }
         return $result;
     }
 
-    private function convertToImageLink(string $url): string
+    private function parseImageLink(string $url): string
     {
-        return str_replace(['/cards/', '.php'], ['/images/', '.jpg'], $url);
+        $html = $this->getHtml($url);
+        $this->document->loadHtml($html);
+
+        $image = $this->document->first('.share42init');
+
+        if (empty($image)) {
+            throw new ParserException('Не найдена картинка по адресу ' . $url);
+        }
+
+        return $image->getAttribute('data-image');
     }
 
     private function addHiddenSubcategories(MainMenu $menu): void
